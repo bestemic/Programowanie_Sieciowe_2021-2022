@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         if (dataProd > 0)
         {
             // Zapisanie tekstu do pliku i obsługa błędu funkcji write
-            if (write(wyjscie, inBuff, sizeof(char) * dataProd) == -1)
+            if (write(wyjscie, inBuff, dataProd) == -1)
             {
                 perror("write error");
                 exit(4);
