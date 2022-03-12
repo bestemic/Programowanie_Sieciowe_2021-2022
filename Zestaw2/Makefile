@@ -1,27 +1,18 @@
-run1:
-	gcc -std=c99 -pedantic -Wall -o zad1.x zad1.c
-	./zad1.x
-
-run2:
-	gcc -std=c99 -pedantic -Wall -o zad2.x zad2.c
-	./zad2.x
-
-run3:
-	gcc -std=c99 -pedantic -Wall -o zad3 zad3.c
-	./zad3.x
-
-run4:
-	gcc -std=c99 -pedantic -Wall -o zad4.x zad4.c
-	./zad4.x
-
-run6:
-	gcc -std=c99 -pedantic -Wall -o zad6.x zad6.c
-	./zad6.x in.txt out.txt
+run5:
+	gcc -std=c99 -pedantic -Wall -o zad5.x zad5.c
+	./zad5.x 20123
 
 run7:
 	gcc -std=c99 -pedantic -Wall -o zad7.x zad7.c
-	./zad7.x in.txt out.txt
+	./zad7.x 127.0.0.1 20123
 
+run9s:
+	gcc -std=c99 -pedantic -Wall -o zad9_serwer.x zad9_serwer.c
+	./zad9_serwer.x 20123
+
+run9c:
+	gcc -std=c99 -pedantic -Wall -o zad9_klient.x zad9_klient.c
+	./zad9_klient.x 127.0.0.1 20123
 
 DIR = `basename $(CURDIR)`
 
