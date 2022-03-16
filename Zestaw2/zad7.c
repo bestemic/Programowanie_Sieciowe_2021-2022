@@ -7,19 +7,21 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-bool drukowalne_byte(const char *buf)
+bool drukowalne_byte(const void *buf, int len)
 {
     const char *buf_in = buf;
 
-    while (true)
+    for (int i = 0; i < len; i++)
     {
-        if (*buf_in == 0)
-            return true;
         if ((*buf_in < 32 || *buf_in > 126) && *buf_in != 13 && *buf_in != 10)
+        {
             return false;
+        }
 
         buf_in += 1;
     }
+
+    return true;
 }
 
 int main(int argc, char *argv[])
@@ -68,14 +70,14 @@ int main(int argc, char *argv[])
     }
 
     // Sprawdzenie czy odebane bajty są drukowalne
-    if (drukowalne_byte(dane) == false)
+    if (drukowalne_byte(dane, odczyt) == false)
     {
         printf("Bajty nie składają się ze znaków drukowalnych\n");
         exit(1);
     }
 
     // Wypisanie wiadomości na konsolę
-    int zapis = write(0, dane, odczyt);
+    int zapis = write(1, dane, odczyt);
 
     // Obsługa błędu funkcji write
     if (zapis != odczyt)
