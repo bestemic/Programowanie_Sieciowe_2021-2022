@@ -1,0 +1,20 @@
+Test 1: wysłanie 0 bajtów
+Test 2: pełny datagram (ostatnia cyfra)
+Test 3: pełny datagram (ostatnia spacja)
+Test 4: wysłanie 0
+Test 5: wysłanie jednej spacji
+Test 6: wysłanie kilku liczb
+Test 7: spacje i liczby (dużo spacji)
+Test 8: przemycenie liter
+Test 9: poprawna liczba
+Test 10: wysłanie tabulatora
+Test 11: ogromne liczby 
+Test 12: nowe linie i brak cyfr
+Test 13: maksymalna liczba do wysłania
+Test 14: maksymalna liczba i kilka mniejszych (wywołanie przepełnienia)
+
+test 13 i 14 zawierają największe liczy w formacie któy ja obsługuję,
+czyli unsigned long int. Jeśli macie mniejsze to zmieńcie sobie
+
+testy uruchamiamy będąc w folderze z plikiem runtests.sh poprzez:
+bash runtests.sh

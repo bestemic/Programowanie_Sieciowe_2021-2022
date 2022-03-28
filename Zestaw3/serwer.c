@@ -103,12 +103,13 @@ int main(int argc, char *argv[])
         int x = 0;
         int error = 0;
         int i = 0;
+        int isNumber = 0;
 
         // Przejście przez bufor i odczytanie jego zawartości
-        while (i < odczyt)
+        while (i <= odczyt)
         {
             // Sprawdzenie czy dozwolony znak
-            if (buffer[i] == ' ' || buffer[i] == 10 || (buffer[i] == 13 && buffer[i + 1] == 10))
+            if (buffer[i] == ' ' || buffer[i] == 10 || (buffer[i] == 13 && buffer[i + 1] == 10) || i == odczyt)
             {
                 // Jeśli przed znakim były liczba
                 if (x != 0)
@@ -176,6 +177,10 @@ int main(int argc, char *argv[])
                     number[x] = buffer[i];
                     x++;
                     i++;
+                    if (!isNumber)
+                    {
+                        isNumber = 1;
+                    }
                 }
                 else
                 {
@@ -194,7 +199,7 @@ int main(int argc, char *argv[])
             sumLen = floor(log10(sum)) + 1;
         }
 
-        char sumChar[sumLen + 1];
+        char sumChar[sumLen];
 
         // Konwersja liczby na tablicę znaków
         for (int j = sumLen - 1; j >= 0; --j, sum /= 10)
@@ -202,19 +207,22 @@ int main(int argc, char *argv[])
             sumChar[j] = (sum % 10) + '0';
         }
 
-        // Dodanie znaku końca linii
-
-        sumChar[sumLen] = '\n';
-
         int zapis;
+
+        // Sprawdzenie czy odczytano cyfry
+        if(!isNumber && !error)
+        {
+            error = 1;
+            printf("ERROR: datagram nie zawiera cyfr\n");
+        }
 
         // Wysyłanie sumy gdy nie ma błędów
         if (error)
         {
-            zapis = sendto(soc, "ERROR\n", 7, 0, (struct sockaddr *)&socIn, len);
+            zapis = sendto(soc, "ERROR", 5, 0, (struct sockaddr *)&socIn, len);
 
             // Sprawdzenie błędów funkcji sendto
-            if (zapis != 7)
+            if (zapis != 5)
             {
                 perror("sendto error");
                 exit(1);
@@ -222,10 +230,10 @@ int main(int argc, char *argv[])
         }
         else
         {
-            zapis = sendto(soc, sumChar, sumLen + 1, 0, (struct sockaddr *)&socIn, len);
+            zapis = sendto(soc, sumChar, sumLen, 0, (struct sockaddr *)&socIn, len);
 
             // Sprawdzenie błędów funkcji sendto
-            if (zapis != sumLen + 1)
+            if (zapis != sumLen)
             {
                 perror("sendto error");
                 exit(1);

@@ -1,6 +1,14 @@
-serwer:
-	gcc -std=c99 -pedantic -Wall -o serwer.x serwer.c -lm
-	./serwer.x
+klient1:
+	gcc -std=c99 -pedantic -Wall -o klient1.x klient1.c -lm
+	./klient1.x
+
+klient2:
+	gcc -std=c99 -pedantic -Wall -o klient2.x klient2.c -lm
+	./klient2.x
+
+klient3:
+	gcc -std=c99 -pedantic -Wall -o klient3.x klient3.c -lm
+	./klient3.x
 	
 DIR = `basename $(CURDIR)`
 
