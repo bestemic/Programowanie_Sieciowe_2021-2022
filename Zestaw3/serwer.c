@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
         int error = 0;
         int i = 0;
         int isNumber = 0;
+        int isSpace = 0;
 
         // Przejście przez bufor i odczytanie jego zawartości
         while (i <= odczyt)
@@ -111,6 +112,15 @@ int main(int argc, char *argv[])
             // Sprawdzenie czy dozwolony znak
             if (buffer[i] == ' ' || buffer[i] == 10 || (buffer[i] == 13 && buffer[i + 1] == 10) || i == odczyt)
             {
+                // Sprawdzenie czy jest spacja
+                if (i < odczyt)
+                {
+                    if (buffer[i] == ' ')
+                    {
+                        isSpace = 1;
+                    }
+                }
+                
                 // Jeśli przed znakim były liczba
                 if (x != 0)
                 {
@@ -210,10 +220,17 @@ int main(int argc, char *argv[])
         int zapis;
 
         // Sprawdzenie czy odczytano cyfry
-        if(!isNumber && !error)
+        if (!isNumber && !error)
         {
             error = 1;
             printf("ERROR: datagram nie zawiera cyfr\n");
+        }
+
+        // Sprawdzenie czy odczytano spacje
+        if (!isSpace && !error)
+        {
+            error = 1;
+            printf("ERROR: datagram nie zawiera spacji\n");
         }
 
         // Wysyłanie sumy gdy nie ma błędów

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 path=tests
-testy=14
+testy=15
 
 for (( c=1; c<=$testy; c++ ))
 do
