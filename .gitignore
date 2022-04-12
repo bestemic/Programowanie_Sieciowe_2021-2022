@@ -1,2 +1,7 @@
 .vscode
 *.x
+*.class
+TCPTester
+**/.idea
+**/out
+**/*.iml

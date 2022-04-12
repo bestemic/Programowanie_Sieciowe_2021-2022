@@ -1,0 +1,7 @@
+Komunikacja pomiędzy klientem a serwerem odbywa się przy pomocy połączenia strumieniowego. 
+Klient wysyła jedną lub więcej linii zawierających liczby, spacjie i zakończene znakiem \r\n.
+Wyjątkiem jest odsyłanie wyniku do klienta które może składać się albo z liczb albo 5 literowego słowa "ERROR". Oba przypadki zakończone
+znakiem \r\n.
+
+Niedozwolone jest przesyłanie do serwera znaków niebądących cyframi, spacjami i znakiem \r\n. 
+

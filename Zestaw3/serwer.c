@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
                         isSpace = 1;
                     }
                 }
-                
+
                 // Jeśli przed znakim były liczba
                 if (x != 0)
                 {

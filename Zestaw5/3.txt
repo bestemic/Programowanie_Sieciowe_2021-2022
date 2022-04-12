@@ -1,0 +1,20 @@
+
+// Serwer Thread
+1. Ustawienia serwera
+2. Połącz z klientem
+3. Pobierz deskryptory
+4. Uruchom wątek przekazując socket i deskryptry 
+
+
+// Client Handler Thread
+1. Odczytaj liczbę
+2. Jeśli znaki \r\n idz do 6
+3. Konwersja
+4. Dodaj do sumy
+5. Idź do 1
+
+6. Odeślij sumę
+7. Idź do 1 
+
+8. Jeśli timeout to zamknij socket
+
