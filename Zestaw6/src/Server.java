@@ -20,7 +20,7 @@ public class Server {
                 DataInputStream input = new DataInputStream(socket.getInputStream());
                 DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 
-                // Uruchomienie obsługi lienta w osobnym wątku
+                // Uruchomienie obsługi klienta w osobnym wątku
                 Thread t = new ClientHandler(socket, input, output);
                 t.start();
 
