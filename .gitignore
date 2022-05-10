@@ -4,4 +4,7 @@
 TCPTester
 **/.idea
 **/out
+**/target
+**/test
+**/resources
 **/*.iml

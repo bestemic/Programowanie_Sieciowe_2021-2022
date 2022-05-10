@@ -21,7 +21,6 @@ public class SiteTester {
     static boolean isValid(String url, String pattern) {
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("GET");
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 return false;
             }
