@@ -56,7 +56,7 @@ public class AlbumFinder {
             }
 
             JSONObject jsonResponse = new JSONObject(response);
-            getAlbumsFromResponse(jsonResponse, albums);
+            albums.addAll(getAlbumsFromResponse(jsonResponse));
 
             if (page == getNumberOFPages(jsonResponse)) {
                 break;
@@ -103,12 +103,14 @@ public class AlbumFinder {
         }
     }
 
-    private static void getAlbumsFromResponse(final JSONObject response, final Set<String> albums) {
+    private static Set<String> getAlbumsFromResponse(final JSONObject response) {
+        Set<String> albums = new HashSet<>();
         JSONArray results = response.getJSONArray("results");
         for (Object result : results) {
             JSONObject album = (JSONObject) result;
             String title = album.getString("title").replaceAll("\\s+$", "");
             albums.add(title);
         }
+        return albums;
     }
 }
