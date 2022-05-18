@@ -17,6 +17,7 @@ public class AlbumFinder {
     private static final String CONSUMER_SECRET = "secret";
     private static final String API = "https://api.discogs.com/database";
     private static final int PAGINATION = 100;
+    private static final String AUTHOR = "Budka-Suflera";
 
     public static void main(String[] args) {
         if (performOperation()) {
@@ -27,40 +28,41 @@ public class AlbumFinder {
     }
 
     private static boolean performOperation() {
-        Set<String> albums = getAlbums();
-        if (albums == null) {
-            return false;
-        }
+        Set<String> albums;
+        try {
+            albums = getAlbums();
+            if (albums == null) {
+                return false;
+            }
 
-        for (String album : albums) {
-            System.out.println(album);
+            for (String album : albums) {
+                System.out.println(album);
+            }
+        } catch (IOException e) {
+            return false;
         }
 
         return true;
     }
 
-    private static Set<String> getAlbums() {
-        int page = 1;
+    private static Set<String> getAlbums() throws IOException {
         final Set<String> albums = new HashSet<>();
 
-        try {
-            while (true) {
-                String response = getResponse(API + "/search?type=release&artist=Budka-Suflera&format=album&key=" + CONSUMER_KEY + "&secret=" + CONSUMER_SECRET + "&page=" + page + "&per_page=" + PAGINATION);
-                if (response == null) {
-                    return null;
-                }
-
-                JSONObject jsonResponse = new JSONObject(response);
-                getAlbumsFromResponse(jsonResponse, albums);
-
-                if (page == getNumberOFPages(jsonResponse)) {
-                    break;
-                }
-                page++;
+        for (int page = 1; ; page++) {
+            final String url = String.format("%s/search?type=release&artist=%s&format=album&key=%s&secret=%s&page=%d&per_page=%d", API, AUTHOR, CONSUMER_KEY, CONSUMER_SECRET, page, PAGINATION);
+            String response = getResponse(url);
+            if (response == null) {
+                return null;
             }
-        } catch (IOException e) {
-            return null;
+
+            JSONObject jsonResponse = new JSONObject(response);
+            getAlbumsFromResponse(jsonResponse, albums);
+
+            if (page == getNumberOFPages(jsonResponse)) {
+                break;
+            }
         }
+
         return albums;
     }
 
@@ -75,31 +77,30 @@ public class AlbumFinder {
             return null;
         }
 
-        final StringBuilder responseContent = new StringBuilder();
         BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        getResponseContent(responseContent, reader);
+        String responseContent = getResponseContent(reader);
 
         connection.disconnect();
         reader.close();
-        return responseContent.toString();
+        return responseContent;
     }
 
-    private static void getResponseContent(final StringBuilder responseContent, final BufferedReader reader) throws IOException {
+    private static String getResponseContent(final BufferedReader reader) throws IOException {
+        final StringBuilder responseContent = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
             responseContent.append(line);
         }
+        return responseContent.toString();
     }
 
     private static int getNumberOFPages(final JSONObject response) {
-        int pages;
         try {
-            JSONObject pagination = (JSONObject) response.get("pagination");
-            pages = pagination.getInt("pages");
+            JSONObject pagination = response.getJSONObject("pagination");
+            return pagination.getInt("pages");
         } catch (JSONException e) {
-            pages = 1;
+            return 1;
         }
-        return pages;
     }
 
     private static void getAlbumsFromResponse(final JSONObject response, final Set<String> albums) {
