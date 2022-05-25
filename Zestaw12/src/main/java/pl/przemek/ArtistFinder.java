@@ -11,6 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.Collator;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class ArtistFinder {
     private static final String CONSUMER_KEY = "key";
@@ -19,11 +20,14 @@ public class ArtistFinder {
     private static final String API = "https://api.discogs.com/artists";
 
     private static String parentGroupName;
+    private static String errorMessage;
 
     public static void main(String[] args) {
         if (performOperation(args)) {
             System.exit(0);
         } else {
+            setErrorMessage("other error occurred");
+            System.err.println("ERROR - " + errorMessage);
             System.exit(1);
         }
     }
@@ -47,33 +51,19 @@ public class ArtistFinder {
 
             printGroups(groups);
         } catch (IOException e) {
+            setErrorMessage("IOException occurred");
             return false;
         }
 
         return true;
     }
 
-    //TODO args checking
     private static String getGroupIdentity(String[] args) {
         if (args.length != 1) {
+            setErrorMessage("wrong number of arguments");
             return null;
         }
         return args[0];
-    }
-
-    private static void printGroups(Map<String, Set<String>> groups) {
-        for (String groupName : groups.keySet()) {
-            if (groupName.equals(parentGroupName)) {
-                continue;
-            }
-            Set<String> members = groups.get(groupName);
-            if (members.size() == 1) {
-                continue;
-            }
-
-            System.out.print(groupName + ": ");
-            System.out.println(String.join(", ", members));
-        }
     }
 
     private static Map<String, String> getArtists(final String groupIdentity) throws IOException {
@@ -93,45 +83,30 @@ public class ArtistFinder {
         return getArtistsFromResponse(jsonResponse);
     }
 
-    private static String getGroupNameFromResponse(JSONObject response) {
+    private static Map<String, String> getArtistsFromResponse(final JSONObject response) {
+        final Map<String, String> artists = new HashMap<>();
+
         try {
-            return String.valueOf(response.getString("name"));
+            JSONArray results = response.getJSONArray("members");
+            for (Object result : results) {
+                JSONObject artist = (JSONObject) result;
+                String artistName = artist.getString("name");
+                String artistUrl = artist.getString("resource_url");
+                artists.put(artistName, artistUrl);
+            }
         } catch (JSONException e) {
+            setErrorMessage("can't get all artists from group");
             return null;
         }
-    }
 
-    private static String createUrl(String groupIdentity) throws IOException {
-        if (!groupIdentity.matches("[0-9]+")) {
-            String url = String.format("%s/search?type=artist&q=%s&per_page=1&key=%s&secret=%s", API_DATABASE, groupIdentity, CONSUMER_KEY, CONSUMER_SECRET);
-            String response = getResponse(url);
-            if (response == null) {
-                return null;
-            }
-            JSONObject jsonResponse = new JSONObject(response);
-            groupIdentity = getGroupIdFromResponse(jsonResponse);
-            if (groupIdentity == null) {
-                return null;
-            }
-        }
-
-        return String.format("%s/%s?key=%s&secret=%s", API, groupIdentity, CONSUMER_KEY, CONSUMER_SECRET);
-    }
-
-    private static String getGroupIdFromResponse(JSONObject response) {
-        try {
-            JSONArray results = response.getJSONArray("results");
-            JSONObject result = results.getJSONObject(0);
-            return String.valueOf(result.getInt("id"));
-        } catch (JSONException e) {
-            return null;
-        }
+        return artists;
     }
 
     private static Map<String, Set<String>> getGroups(final Map<String, String> artists) throws IOException {
         final Map<String, Set<String>> groups = new TreeMap<>(Collator.getInstance(new Locale("pl", "PL")));
         for (String artist : artists.keySet()) {
-            String response = getResponse(artists.get(artist));
+            String url = String.format("%s?key=%s&secret=%s", artists.get(artist), CONSUMER_KEY, CONSUMER_SECRET);
+            String response = getResponse(url);
             if (response == null) {
                 return null;
             }
@@ -146,7 +121,7 @@ public class ArtistFinder {
                 if (groups.containsKey(group)) {
                     groups.get(group).add(artist);
                 } else {
-                    Set<String> groupMembers = new HashSet<>();
+                    Set<String> groupMembers = new TreeSet<>(Collator.getInstance(new Locale("pl", "PL")));
                     groupMembers.add(artist);
                     groups.put(group, groupMembers);
                 }
@@ -167,28 +142,64 @@ public class ArtistFinder {
                 groups.add(groupName);
             }
         } catch (JSONException e) {
+            setErrorMessage("artist groups can't be found");
             return null;
         }
 
         return groups;
     }
 
-    private static Map<String, String> getArtistsFromResponse(final JSONObject response) {
-        final Map<String, String> artists = new HashMap<>();
-
+    private static String getGroupIdFromResponse(JSONObject response) {
         try {
-            JSONArray results = response.getJSONArray("members");
-            for (Object result : results) {
-                JSONObject artist = (JSONObject) result;
-                String artistName = artist.getString("name");
-                String artistUrl = artist.getString("resource_url");
-                artists.put(artistName, artistUrl);
-            }
+            JSONArray results = response.getJSONArray("results");
+            JSONObject result = results.getJSONObject(0);
+            return String.valueOf(result.getInt("id"));
         } catch (JSONException e) {
+            setErrorMessage("group id not found");
             return null;
         }
+    }
 
-        return artists;
+    private static String getGroupNameFromResponse(JSONObject response) {
+        try {
+            return String.valueOf(response.getString("name"));
+        } catch (JSONException e) {
+            setErrorMessage("group name not found");
+            return null;
+        }
+    }
+
+    private static String createUrl(String groupIdentity) throws IOException {
+        if (!groupIdentity.matches("[0-9]+")) {
+            String url = String.format("%s/search?type=artist&q=%s&per_page=1&key=%s&secret=%s", API_DATABASE, groupIdentity, CONSUMER_KEY, CONSUMER_SECRET);
+            String response = getResponse(url);
+            if (response == null) {
+                setErrorMessage("group not found");
+                return null;
+            }
+            JSONObject jsonResponse = new JSONObject(response);
+            groupIdentity = getGroupIdFromResponse(jsonResponse);
+            if (groupIdentity == null) {
+                return null;
+            }
+        }
+
+        return String.format("%s/%s?key=%s&secret=%s", API, groupIdentity, CONSUMER_KEY, CONSUMER_SECRET);
+    }
+
+    private static void printGroups(Map<String, Set<String>> groups) {
+        for (String groupName : groups.keySet()) {
+            if (groupName.equals(parentGroupName)) {
+                continue;
+            }
+            Set<String> members = groups.get(groupName);
+            if (members.size() == 1) {
+                continue;
+            }
+
+            System.out.print(groupName + ": ");
+            System.out.println(String.join(", ", members));
+        }
     }
 
     private static String getResponse(final String url) throws IOException {
@@ -196,10 +207,24 @@ public class ArtistFinder {
         final HttpURLConnection connection = (HttpURLConnection) connectionUrl.openConnection();
         connection.setConnectTimeout(5000);
 
-        if (connection.getResponseCode() != 200) {
+        if (connection.getResponseCode() == 429) {
+            try {
+                connection.disconnect();
+                System.err.println("WAITING - to many requests");
+                TimeUnit.SECONDS.sleep(60);
+                return getResponse(url);
+            } catch (InterruptedException e) {
+                setErrorMessage("failed to wait");
+                return null;
+            }
+        }
+
+        if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            setErrorMessage("unsuccessful response");
             return null;
         }
         if (!connection.getContentType().contains("application/json")) {
+            setErrorMessage("bad response type");
             return null;
         }
 
@@ -218,5 +243,11 @@ public class ArtistFinder {
             responseContent.append(line);
         }
         return responseContent.toString();
+    }
+
+    private static void setErrorMessage(final String message) {
+        if (errorMessage == null) {
+            errorMessage = message;
+        }
     }
 }
